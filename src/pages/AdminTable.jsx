@@ -75,7 +75,7 @@ const AdminTable = () => {
     },
     
   ];
-
+  const [viewingAdmin, setViewingAdmin] = useState(null); 
   const [admins, setAdmins] = useState(initialAdmins);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -197,7 +197,12 @@ const AdminTable = () => {
   };
 
   const getStatusColor = (status) => (status === "Active" ? "text-green-500" : "text-red-500");
-
+  const handleViewAdmin = (admin) => {
+    setViewingAdmin(admin);
+  };
+  const closeViewModal = () => {
+    setViewingAdmin(null);
+  };
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-xl font-semibold mb-4">All Admins</h1>
@@ -220,78 +225,150 @@ const AdminTable = () => {
             <option value="Admin">Admin</option>
           </select>
           <div className="space-x-2">
-            <button onClick={() => openModal()} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+            {/* <button onClick={() => openModal()} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
               Add Admin
-            </button>
+            </button> */}
             <button onClick={exportToExcel} className="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
               Export
             </button>
           </div>
         </div>
         <table className="w-full text-left border-collapse">
-        <thead className="bg-gray-100 text-gray-600">
-  <tr>
-    <th className="p-4">Image</th>
-    <th className="p-4">Name & Email</th> {/* Updated header */}
-    <th className="p-4">Role</th>
-    <th className="p-4">Country</th>
-    <th className="p-4">Status</th>
-    <th className="p-4">Subscribed</th>
-    <th className="p-4">Date Added</th>
-    <th className="p-4">Actions</th>
-  </tr>
-</thead>
+  <thead className="bg-gray-100 text-gray-600 text-sm">
+    <tr>
+      <th className="p-2">Image</th>
+      <th className="p-2">Name & Email</th>
+      <th className="p-2 hidden md:table-cell">Role</th>
+      <th className="p-2 hidden md:table-cell">Country</th>
+      <th className="p-2">Status</th>
+      <th className="p-2 hidden md:table-cell">Subscribed</th>
+      <th className="p-2 hidden lg:table-cell">Date Added</th>
+      <th className="p-2">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {admins
+      .filter((admin) =>
+        (roleFilter ? admin.role === roleFilter : true) &&
+        (admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          admin.email.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      .map((admin, index) => (
+        <tr key={index} className="border-t text-sm hover:bg-gray-50">
+          <td className="p-2">
+            <img
+              src={admin.image || "https://via.placeholder.com/100"}
+              alt={admin.name}
+              className="w-8 h-8 rounded-full"
+            />
+          </td>
+          <td className="p-2">
+            <div className="font-semibold truncate">{admin.name}</div>
+            <div className="text-gray-500 text-xs truncate">{admin.email}</div>
+          </td>
+          <td className="p-2 hidden md:table-cell">{admin.role}</td>
+          <td className="p-2 hidden md:table-cell">{admin.country}</td>
+          <td className="p-2">
+            <span className={`font-medium ${getStatusColor(admin.status)}`}>{admin.status}</span>
+          </td>
+          <td className="p-2 hidden md:table-cell">
+            {admin.subscribed ? "Yes" : "No"}
+          </td>
+          <td className="p-2 hidden lg:table-cell">{admin.dateAdded}</td>
+          <td className="p-2 space-x-1">
+            <button
+              onClick={() => openModal(admin, index)}
+              className="bg-blue-500 text-white px-2 py-1 text-xs rounded-md hover:bg-blue-600"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => handleViewAdmin(admin)}
+              className="bg-green-400 text-white px-2 py-1 text-xs rounded-md hover:bg-green-600"
+            >
+              View
+            </button>
+            <button
+              onClick={() => handleDeleteAdmin(index)}
+              className="bg-red-500 text-white px-2 py-1 text-xs rounded-md hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      ))}
+  </tbody>
+</table>
 
-          <tbody>
-  {admins
-    .filter((admin) =>
-      (roleFilter ? admin.role === roleFilter : true) &&
-      (admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        admin.email.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-    .map((admin, index) => (
-      <tr key={index} className="border-t hover:bg-gray-50">
-        <td className="p-4">
-          <img src={admin.image || "https://via.placeholder.com/100"} alt={admin.name} className="w-10 h-10 rounded-full" />
-        </td>
-        <td className="p-4">
-          <div className="font-semibold">{admin.name}</div>
-          <div className="text-gray-500 text-sm">{admin.email}</div> {/* Email nested under name */}
-        </td>
-        <td className="p-4">{admin.role}</td>
-        <td className="p-4">{admin.country}</td>
-        <td className="p-4">
-          <span className={`font-medium ${getStatusColor(admin.status)}`}>{admin.status}</span>
-        </td>
-        <td className="p-4">{admin.subscribed ? "Yes" : "No"}</td>
-        <td className="p-4">{admin.dateAdded}</td>
-        <td className="p-4 space-x-2">
-          <button
-            onClick={() => openModal(admin, index)}
-            className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
-          >
-            Edit
-          </button>
-          <button
-            className="bg-green-400 text-white px-3 py-1 rounded-md hover:bg-green-600"
-          >
-            View
-          </button>
-          <button
-            onClick={() => handleDeleteAdmin(index)}
-            className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </td>
-      </tr>
-    ))}
-</tbody>
-
-
-        </table>
         {admins.length === 0 && <div className="p-4 text-center text-gray-500">No admins found.</div>}
       </div>
+{/* View Details Modal */}
+{viewingAdmin && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg w-1/2 shadow-xl flex">
+      {/* Image Section */}
+      <div className="w-1/3 flex items-center justify-center bg-gray-100 rounded-l-lg">
+        <img
+          src={viewingAdmin.image || "https://via.placeholder.com/150"}
+          alt={viewingAdmin.name}
+          className="  shadow-md object-cover"
+        />
+      </div>
+      
+      {/* Details Section */}
+      <div className="w-2/3 p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {viewingAdmin.name}
+          </h2>
+          <button
+            onClick={closeViewModal}
+            className="text-red-500 font-bold text-xl hover:text-red-600"
+          >
+            &times;
+          </button>
+        </div>
+        
+        {/* Details */}
+        <div className="space-y-4 text-gray-700">
+          <p><strong>Email:</strong> {viewingAdmin.email}</p>
+          <p><strong>Role:</strong> {viewingAdmin.role}</p>
+          <p><strong>Country:</strong> {viewingAdmin.country}</p>
+          <p>
+            <strong>Status:</strong>{" "}
+            <span className={getStatusColor(viewingAdmin.status)}>
+              {viewingAdmin.status}
+            </span>
+          </p>
+          <p>
+            <strong>Subscribed:</strong>{" "}
+            {viewingAdmin.subscribed ? (
+              <span className="text-green-500">Yes</span>
+            ) : (
+              <span className="text-red-500">No</span>
+            )}
+          </p>
+          <p><strong>Date Added:</strong> {viewingAdmin.dateAdded}</p>
+        </div>
+        
+        {/* Footer */}
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={closeViewModal}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+{/*  Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-1/3">
